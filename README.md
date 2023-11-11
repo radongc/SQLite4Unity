@@ -29,7 +29,7 @@ public class NpcSpawn
 The `[SQLiteTable("tablename")]` attribute defines the table that this class refers to and is required.
 The `[Column("columnname")]` attribute is optional, and specifies which column a given variable represents, with the `PrimaryKey = true` parameter specifying primary keys. If no `[Column(...)]` attributes are used, the column name will be identical to the property name.
 
-If using the Column attribute for every property, the `NpcSpawn` class could look like this:
+If using the `[Column(...)]` attribute for every property, the `NpcSpawn` class could look like this:
 
 ```csharp
 [SQLiteTable("npc_spawn")]
@@ -76,4 +76,5 @@ public class DatabaseTest : MonoBehaviour
 }
 ```
 
-The `GetAll()` method retrieves every row from the table as your previously defined C# object.
+When initializing the `DbSet<TableClass>` object, pass in your SQLite database file name.
+From there, using the `GetAll()` method retrieves every row from the table as a list of previously defined C# objects.
