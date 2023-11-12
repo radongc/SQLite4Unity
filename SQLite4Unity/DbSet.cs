@@ -2,7 +2,6 @@
 using SQLite4Unity.Attributes;
 using SQLite4Unity.Extension;
 using System.Data;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace SQLite4Unity.ORM
