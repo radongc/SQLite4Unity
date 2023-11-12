@@ -26,8 +26,8 @@ public class NpcSpawn
 }
 ```
 
-The `[SQLiteTable("tablename")]` attribute defines the table that this class refers to and is required.
-The `[Column("columnname")]` attribute is optional, and specifies which column a given variable represents, with the `PrimaryKey = true` parameter specifying primary keys. If no `[Column(...)]` attributes are used, the column name will be identical to the property name.
+The `[SQLiteTable("npc_spawn")]` attribute is required and defines the table that this class refers to ('`npc_spawn`').
+The `[Column("SpawnID")]` attribute is optional, and specifies which column a given variable represents, with the `PrimaryKey = true` parameter specifying primary keys. If no `[Column(...)]` attributes are used, the column name will be identical to the property name.
 
 If using the `[Column(...)]` attribute for every property, the `NpcSpawn` class could look like this:
 
@@ -56,9 +56,23 @@ public class NpcSpawn
 }
 ```
 
+The `[Column(...)]` attribute is most useful in the case of wanting to have a property corresponding to a column with a different name, for example:
+
+```csharp
+[SQLiteTable("npc_spawn")]
+public class NpcSpawn
+{
+    ...
+    [Column("position_x")]
+    public float PosX { get; set; }
+    ...
+```
+
+In this case, data from the column '`position_x`' will be stored in the `PosX` property.
+
 ### Retrieving Data
 
-Once you have your schema defined, accessing the data should be done from within a `MonoBehaviour` using a `DbSet` for each table:
+Once you have your schema defined, accessing the data can be done from within a `MonoBehaviour` class using a `DbSet<T>` (where T is your DB schema class) object for each table:
 
 ```csharp
 public class DatabaseTest : MonoBehaviour
