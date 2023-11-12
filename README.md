@@ -91,7 +91,7 @@ public class DatabaseTest : MonoBehaviour
 ```
 
 When initializing the `DbSet<TableClass>` object, pass in your SQLite database file name.
-From there, using the `GetAll()` method retrieves every row from the table as a list of previously defined C# objects.
+From there, calling `GetAll()` retrieves every row from the table as a list of the previously defined C# objects.
 
 ### Queries and Commands
 
