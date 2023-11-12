@@ -63,13 +63,13 @@ Once you have your schema defined, accessing the data should be done from within
 ```csharp
 public class DatabaseTest : MonoBehaviour
 {
-    DbSet<NpcTest> npcTestHolder;
+    DbSet<NpcSpawn> npcTestHolder;
 
     void Awake()
     {
-        npcTestHolder = new DbSet<NpcTest>("world.db");
+        npcTestHolder = new DbSet<NpcSpawn>("world.db");
 
-        List<NpcTest> testList = npcTestHolder.GetAll();
+        List<NpcSpawn> testList = npcTestHolder.GetAll();
 
         Debug.LogWarning($"First spawn info: SpawnID: {testList[0].SpawnID}, TemplateID: {testList[0].TemplateID}");
     }
@@ -78,3 +78,36 @@ public class DatabaseTest : MonoBehaviour
 
 When initializing the `DbSet<TableClass>` object, pass in your SQLite database file name.
 From there, using the `GetAll()` method retrieves every row from the table as a list of previously defined C# objects.
+
+### Queries and Commands
+
+You can also query or execute commands on the table, using `DbSet<T>.Query()` and `DbSet<T>.Execute()`:
+
+```csharp
+public class DatabaseTest : MonoBehaviour
+{
+    DbSet<NpcSpawn> npcTestHolder;
+
+    void Awake()
+    {
+        npcTestHolder = new DbSet<NpcSpawn>("world.db");
+
+        int spawnId = 4;
+
+        List<NpcSpawn> foundNpcSpawns = npcTestHolder.Query($"SELECT * FROM @TableName WHERE SpawnID = '{spawnId}'");
+
+        if (foundNpcSpawns.Count > 0)
+        {
+            NpcSpawn npcSpawn = foundNpcSpawns[0];
+
+            Debug.Log($"Spawn with ID template is {npcSpawn.TemplateID}");
+
+            npcTestHolder.Execute($"DELETE FROM @TableName WHERE SpawnID = '{npcSpawn.SpawnID}'");
+
+            Debug.Log($"Deleted the npc spawn that was found.");
+        }
+    }
+}
+```
+
+In the above instance, we query the table for an `NpcSpawn` with a `SpawnID` of 4. We can use `@TableName` in place of the actual table name in queries and commands.
