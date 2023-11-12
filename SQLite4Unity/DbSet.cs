@@ -9,8 +9,8 @@ namespace SQLite4Unity.ORM
 {
     public class DbSet<T> where T : new()
     {
-        private string DatabaseName;
-        private string TableName;
+        protected string DatabaseName;
+        protected string TableName;
         private List<ColumnData> ColumnInfo = new List<ColumnData>();
 
         public DbSet(string databaseName)
@@ -20,12 +20,7 @@ namespace SQLite4Unity.ORM
             GetTableAttributeData(typeof(T));
         }
 
-        /// <summary>
-        /// Execute a query on the specified database.
-        /// </summary>
-        /// <param name="query">The query to execute.</param>
-        /// <returns>The IdbConnection and IDataReader. Both should be closed when finished.</returns>
-        public KeyValuePair<IDbConnection, IDataReader> ExecuteQueryAndGetReader(string query)
+        protected virtual KeyValuePair<IDbConnection, IDataReader> ExecuteQueryAndGetReader(string query)
         {
             IDbConnection dbConnection = OpenDatabase();
             IDbCommand dbCmdReadValues = dbConnection.CreateCommand();
@@ -35,11 +30,7 @@ namespace SQLite4Unity.ORM
             return new KeyValuePair<IDbConnection, IDataReader>(dbConnection, dataReader);
         }
 
-        /// <summary>
-        /// Execute a command on the specified database.
-        /// </summary>
-        /// <param name="nonQuery">The command to execute.</param>
-        public void ExecuteNonQuery(string nonQuery)
+        protected virtual void ExecuteNonQuery(string nonQuery)
         {
             IDbConnection dbConnection = OpenDatabase();
             IDbCommand dbCmdExecute = dbConnection.CreateCommand();
@@ -49,7 +40,8 @@ namespace SQLite4Unity.ORM
             dbConnection.Close();
         }
 
-        private IDbConnection OpenDatabase()
+        // TODO: Need to use config data for this, but due to Awake/Start etc. call order it creates errors. Clean this up ASAP!
+        protected virtual IDbConnection OpenDatabase()
         {
             string dbName = DatabaseName;
 
@@ -61,12 +53,26 @@ namespace SQLite4Unity.ORM
         }
 
         /// <summary>
-        /// Retrieves all rows as POCOs for the specified table type 'T'.
+        /// Execute an SQL command on the table for type 'T'.
         /// </summary>
-        /// <returns>A deserialized list of all rows in the table.</returns>
-        public List<T> GetAll()
+        /// <param name="command">The SQL command to execute. (Use @TableName in place of the table name, and @DatabaseName for the database name. Ex: 'SELECT * FROM @TableName ...')</param>
+        public void Execute(string command)
         {
-            KeyValuePair<IDbConnection, IDataReader> dbQuery = ExecuteQueryAndGetReader($"SELECT * FROM {TableName}");
+            string realCmd = GetORMVariablesFromSQLString(command);
+
+            ExecuteNonQuery(realCmd);
+        }
+
+        /// <summary>
+        /// Query the table for type 'T' and return a list of found rows.
+        /// </summary>
+        /// <param name="query">The SQL query to execute. (Use @TableName in place of the table name, and @DatabaseName for the database name. Ex: 'SELECT * FROM @TableName ...')</param>
+        /// <returns></returns>
+        public List<T> Query(string query)
+        {
+            string realQuery = GetORMVariablesFromSQLString(query);
+
+            KeyValuePair<IDbConnection, IDataReader> dbQuery = ExecuteQueryAndGetReader(realQuery);
 
             List<T> rows = new List<T>();
 
@@ -81,18 +87,25 @@ namespace SQLite4Unity.ORM
                     object colValue = null;
 
                     if (columnData.Type == typeof(Int32))
-                        colValue = (Int32)dbQuery.Value[$"{columnData.Name}"].ToInt32();
+                        colValue = (Int32)dbQuery.Value[$"{columnData.ColumnName}"].ToInt32();
                     else if (columnData.Type == typeof(String))
-                        colValue = (String)dbQuery.Value[$"{columnData.Name}"].ToString();
+                        colValue = (String)dbQuery.Value[$"{columnData.ColumnName}"].ToString();
                     else if (columnData.Type == typeof(Single))
-                        colValue = (Single)dbQuery.Value[$"{columnData.Name}"].ToFloat();
+                        colValue = (Single)dbQuery.Value[$"{columnData.ColumnName}"].ToFloat();
 
-                    columnValues.Add(columnData.Name, colValue);
+                    columnValues.Add(columnData.ColumnName, colValue);
                 }
 
                 foreach (KeyValuePair<string, object> colData in columnValues)
                 {
                     PropertyInfo schemaProperty = schema.GetType().GetProperty(colData.Key);
+
+                    // In the case that a column has a different name than its property and is specified by ColumnAttribute.
+                    if (schemaProperty == null)
+                    {
+                        ColumnData dataForColumn = GetColumnDataByColumnName(colData.Key);
+                        schemaProperty = schema.GetType().GetProperty(dataForColumn.PropertyName);
+                    }
 
                     if (schemaProperty.PropertyType == typeof(Int32))
                         schemaProperty.SetValue(schema, colData.Value.ToInt32());
@@ -111,6 +124,31 @@ namespace SQLite4Unity.ORM
             return rows;
         }
 
+        private ColumnData GetColumnDataByColumnName(string columnName)
+        {
+            foreach (ColumnData col in ColumnInfo)
+            {
+                if (col.ColumnName == columnName)
+                    return col;
+            }
+
+            return null;
+        }
+
+        private string GetORMVariablesFromSQLString(string baseString)
+        {
+            string modifiedQuery = baseString.Replace("@TableName", TableName);
+            modifiedQuery = modifiedQuery.Replace("@DatabaseName", DatabaseName);
+
+            return modifiedQuery;
+        }
+
+        public List<T> GetAll()
+        {
+            return Query($"SELECT * FROM {TableName}");
+        }
+
+        // Gets all the properties of a given class, and checks to see if the class has the SQLiteTable attrib and its members have a Column attribute attached.
         private void GetTableAttributeData(Type t)
         {
             SQLiteTableAttribute tableAttr;
@@ -135,11 +173,11 @@ namespace SQLite4Unity.ORM
                 if (columnAttr == null)
                 {
                     // If no attribute, take the var name itself as the column name.
-                    ColumnInfo.Add(new ColumnData(propertyInfos[i].PropertyType, propertyInfos[i].Name, false));
+                    ColumnInfo.Add(new ColumnData(propertyInfos[i].PropertyType, propertyInfos[i].Name, propertyInfos[i].Name, false));
                 }
                 else
                 {
-                    ColumnInfo.Add(new ColumnData(propertyInfos[i].PropertyType, columnAttr.ColumnName, columnAttr.PrimaryKey));
+                    ColumnInfo.Add(new ColumnData(propertyInfos[i].PropertyType, columnAttr.ColumnName, propertyInfos[i].Name, columnAttr.PrimaryKey));
                 }
             }
         }

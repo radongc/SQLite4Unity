@@ -9,19 +9,21 @@ namespace SQLite4Unity.ORM
     internal class ColumnData
     {
         public Type Type;
-        public string Name;
+        public string ColumnName;
+        public string PropertyName;
         public bool IsPrimaryKey;
 
-        public ColumnData(Type type, string name, bool isPrimaryKey)
+        public ColumnData(Type type, string columnName, string propertyName, bool isPrimaryKey)
         {
             Type = type;
-            Name = name;
+            ColumnName = columnName;
+            PropertyName = propertyName;
             IsPrimaryKey = isPrimaryKey;
         }
 
         public override string ToString()
         {
-            return $"(Type: {Type.ToString()}, Name: {Name}, Primary Key: {IsPrimaryKey})";
+            return $"(Type: {Type.ToString()}, Name: {ColumnName}, Primary Key: {IsPrimaryKey})";
         }
     }
 }
