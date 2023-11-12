@@ -40,7 +40,6 @@ namespace SQLite4Unity.ORM
             dbConnection.Close();
         }
 
-        // TODO: Need to use config data for this, but due to Awake/Start etc. call order it creates errors. Clean this up ASAP!
         protected virtual IDbConnection OpenDatabase()
         {
             string dbName = DatabaseName;
