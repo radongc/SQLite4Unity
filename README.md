@@ -110,4 +110,4 @@ public class DatabaseTest : MonoBehaviour
 }
 ```
 
-In the above instance, we query the table for an `NpcSpawn` with a `SpawnID` of 4. We can use `@TableName` in place of the actual table name in queries and commands.
+In the above example, we query the table for an `NpcSpawn` with a `SpawnID` of 4 and then delete the entry. `@TableName` can be used in place of the actual table name in queries and commands.
