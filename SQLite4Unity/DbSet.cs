@@ -2,6 +2,7 @@
 using SQLite4Unity.Attributes;
 using SQLite4Unity.Extension;
 using System.Data;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace SQLite4Unity.ORM
@@ -135,8 +136,8 @@ namespace SQLite4Unity.ORM
 
         private string GetORMVariablesFromSQLString(string baseString)
         {
-            string modifiedQuery = baseString.Replace("@TableName", TableName);
-            modifiedQuery = modifiedQuery.Replace("@DatabaseName", DatabaseName);
+            string modifiedQuery = baseString.Replace("@ThisTable", TableName);
+            modifiedQuery = modifiedQuery.Replace("@ThisDatabaseFile", DatabaseName);
 
             return modifiedQuery;
         }
@@ -156,7 +157,7 @@ namespace SQLite4Unity.ORM
 
             if (tableAttr == null)
             {
-                Console.WriteLine($"No attribute in class {t.ToString()}.");
+                Console.WriteLine($"No 'SQLiteTable' attribute attached to class {t.ToString()}.");
             }
             else
             {

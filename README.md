@@ -108,7 +108,7 @@ public class DatabaseTest : MonoBehaviour
 
         int spawnId = 4;
 
-        List<NpcSpawn> foundNpcSpawns = npcTestHolder.Query($"SELECT * FROM @TableName WHERE SpawnID = '{spawnId}'");
+        List<NpcSpawn> foundNpcSpawns = npcTestHolder.Query($"SELECT * FROM @ThisTable WHERE SpawnID = '{spawnId}'");
 
         if (foundNpcSpawns.Count > 0)
         {
@@ -116,7 +116,7 @@ public class DatabaseTest : MonoBehaviour
 
             Debug.Log($"Spawn with ID template is {npcSpawn.TemplateID}");
 
-            npcTestHolder.Execute($"DELETE FROM @TableName WHERE SpawnID = '{npcSpawn.SpawnID}'");
+            npcTestHolder.Execute($"DELETE FROM @ThisTable WHERE SpawnID = '{npcSpawn.SpawnID}'");
 
             Debug.Log($"Deleted the npc spawn that was found.");
         }
@@ -124,4 +124,4 @@ public class DatabaseTest : MonoBehaviour
 }
 ```
 
-In the above example, we query the table `npc_spawn` for an `NpcSpawn` with a `SpawnID` of 4 and then delete the entry. `@TableName` can be used in place of the actual table name, and `@DatabaseName` in place of the actual database name in queries and commands.
+In the above example, we query the table `npc_spawn` for an `NpcSpawn` with a `SpawnID` of 4 and then delete the entry. `@ThisTable` can be used in place of the actual table name, and `@ThisDatabaseFile` in place of the actual database name in queries and commands.
